@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ${EV_DB_USER:-ev_scanner}
+      POSTGRES_PASSWORD: ${EV_DB_PASSWORD:-local_dev_only}
+      POSTGRES_DB: ${EV_DB_NAME:-ev_scanner}
+    ports:
+      - "127.0.0.1:${EV_DB_PORT:-5432}:5432"
+    volumes:
+      - ev_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      EV_ENVIRONMENT: development
+      EV_APPLICATION_NAME: EV Scanner
+      EV_LOG_LEVEL: ${EV_LOG_LEVEL:-INFO}
+      EV_HOST: 0.0.0.0
+      EV_PORT: 8000
+      EV_PRESENTATION_TIMEZONE: ${EV_PRESENTATION_TIMEZONE:-Australia/Sydney}
+      EV_DATABASE_URL: postgresql+psycopg://${EV_DB_USER:-ev_scanner}:${EV_DB_PASSWORD:-local_dev_only}@db:5432/${EV_DB_NAME:-ev_scanner}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "alembic upgrade head && exec uvicorn ev_scanner.api.app:app --host 0.0.0.0 --port 8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ev_postgres_data:
