@@ -14,6 +14,7 @@ def test_create_app_does_not_create_database_engine(monkeypatch: MonkeyPatch) ->
         raise AssertionError("database engine was created during application construction")
 
     monkeypatch.setattr(engine_module, "create_engine", fail_if_called)
-    application = create_app(Settings(_env_file=None, environment="test"))
+    settings = Settings.model_validate({"environment": "test"})
+    application = create_app(settings)
 
     assert isinstance(application, FastAPI)
