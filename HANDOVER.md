@@ -4,7 +4,7 @@
 
 **Phase 1 — Repository Bootstrap**
 
-Status: complete on `phase-1/repository-bootstrap`. Pull request CI run 10 passed all quality, migration, and Docker Compose smoke checks.
+Status: complete on `phase-1/repository-bootstrap`. Pull request CI run 11 passed all quality, migration, and Docker Compose smoke checks.
 
 ## Summary
 
@@ -55,7 +55,7 @@ Executed locally on 2026-07-24:
 - `python -m compileall -q src tests alembic`: passed.
 - Ruff, mypy, PostgreSQL, and Docker were unavailable in the local sandbox; the attempted local migration also lacked Psycopg.
 
-Verified in GitHub Actions run 10 using Python 3.12:
+Verified in GitHub Actions run 11 using Python 3.12:
 
 - `ruff check .`: passed.
 - `ruff format --check .`: passed.
