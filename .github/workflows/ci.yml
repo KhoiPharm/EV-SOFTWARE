@@ -25,15 +25,22 @@ jobs:
         run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
       - name: Ruff lint
         run: ruff check .
-      - name: Show Ruff formatting diff
-        run: ruff format --diff .
-        continue-on-error: true
-      - name: Ruff format
-        run: ruff format --check .
+      - name: Generate Ruff formatting patch
+        run: |
+          ruff format .
+          git diff --binary > ruff-format.patch
+      - name: Upload Ruff formatting patch
+        uses: actions/upload-artifact@v4
+        with:
+          name: ruff-format-patch
+          path: ruff-format.patch
+          if-no-files-found: error
       - name: Mypy
         run: mypy src tests
       - name: Pytest
         run: pytest
+      - name: Verify formatting is committed
+        run: git diff --exit-code
 
   migration:
     runs-on: ubuntu-latest
