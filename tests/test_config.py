@@ -7,7 +7,7 @@ from ev_scanner.core.config import Settings
 
 
 def test_settings_have_safe_local_defaults() -> None:
-    settings = Settings(_env_file=None)
+    settings = Settings.model_validate({})
 
     assert settings.host == "127.0.0.1"
     assert settings.presentation_timezone == "Australia/Sydney"
@@ -15,10 +15,10 @@ def test_settings_have_safe_local_defaults() -> None:
 
 
 def test_log_level_is_normalized() -> None:
-    settings = Settings(_env_file=None, log_level="warning")
+    settings = Settings.model_validate({"log_level": "warning"})
     assert settings.log_level == "WARNING"
 
 
 def test_invalid_timezone_is_rejected() -> None:
     with pytest.raises(ValidationError):
-        Settings(_env_file=None, presentation_timezone="Not/AZone")
+        Settings.model_validate({"presentation_timezone": "Not/AZone"})
