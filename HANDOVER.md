@@ -4,11 +4,11 @@
 
 **Phase 1 — Repository Bootstrap**
 
-Status: implementation complete on `phase-1/repository-bootstrap`; local pytest passed, while the unavailable local toolchain and PostgreSQL/Docker checks remain for GitHub Actions.
+Status: complete on `phase-1/repository-bootstrap`. Pull request CI run 10 passed all quality, migration, and Docker Compose smoke checks.
 
 ## Summary
 
-The repository now contains a Python 3.12 modular-monolith foundation with FastAPI, typed settings, sanitized UTC JSON logging, lazy SQLAlchemy/Psycopg database ownership, Alembic, health endpoints, Docker Compose, tests, and GitHub Actions.
+The repository now contains a Python 3.12 modular-monolith foundation with FastAPI, typed settings, sanitized UTC JSON logging, lazy SQLAlchemy/Psycopg database ownership, Alembic, health endpoints, Docker Compose, deterministic tests, and GitHub Actions.
 
 ## Files created
 
@@ -18,7 +18,7 @@ The repository now contains a Python 3.12 modular-monolith foundation with FastA
 - `alembic.ini`, `alembic/`: schema migration baseline.
 - `src/ev_scanner/`: API, core, and database packages.
 - `tests/`: configuration, app, health, and logging tests.
-- `.github/workflows/ci.yml`: Python 3.12 quality and PostgreSQL migration checks.
+- `.github/workflows/ci.yml`: Python 3.12 quality, migration, and Compose smoke checks.
 
 ## Files modified
 
@@ -41,25 +41,28 @@ One local FastAPI modular monolith. Configuration and logging are application-wi
 
 ## Configuration variables
 
-`EV_ENVIRONMENT`, `EV_APPLICATION_NAME`, `EV_LOG_LEVEL`, `EV_HOST`, `EV_PORT`, `EV_DATABASE_URL`, and `EV_PRESENTATION_TIMEZONE`. Compose additionally consumes local database bootstrap variables documented in `.env.example`.
+`EV_ENVIRONMENT`, `EV_APPLICATION_NAME`, `EV_LOG_LEVEL`, `EV_HOST`, `EV_PORT`, `EV_DATABASE_URL`, and `EV_PRESENTATION_TIMEZONE`. Compose additionally consumes the local database bootstrap variables documented in `.env.example`.
 
 ## Migration status
 
-Revision `0001_bootstrap` is the baseline and intentionally creates no domain tables. CI is configured to run `alembic upgrade head` against clean PostgreSQL.
+Revision `0001_bootstrap` is the baseline and intentionally creates no domain tables. `alembic upgrade head` passed against clean PostgreSQL 17 in GitHub Actions.
 
 ## Verification results
 
 Executed locally on 2026-07-24:
 
-- `pytest`: **9 passed in 0.05s**. The available sandbox interpreter was Python 3.13.5, so Python 3.12 remains CI-verified rather than locally verified.
+- `pytest`: **9 passed in 0.05s** using the available Python 3.13.5 sandbox interpreter.
 - `python -m compileall -q src tests alembic`: passed.
-- `ruff check .`: not run successfully because `ruff` is not installed and the sandbox package index could not provide it.
-- `ruff format --check .`: not run successfully for the same reason.
-- `mypy src tests`: not run successfully because `mypy` is not installed.
-- `alembic upgrade head`: attempted but could not start because the sandbox lacks Psycopg and a PostgreSQL service.
-- Docker Compose smoke test: not run because Docker is not installed in the sandbox.
+- Ruff, mypy, PostgreSQL, and Docker were unavailable in the local sandbox; the attempted local migration also lacked Psycopg.
 
-GitHub Actions is configured to run all required Python 3.12, Ruff, mypy, pytest, PostgreSQL, and Alembic checks on the pull request.
+Verified in GitHub Actions run 10 using Python 3.12:
+
+- `ruff check .`: passed.
+- `ruff format --check .`: passed.
+- `mypy src tests`: passed.
+- `pytest`: passed.
+- `alembic upgrade head`: passed against clean PostgreSQL 17.
+- Docker Compose smoke test: built the non-root API image, started PostgreSQL and the API, applied migrations, and received a successful response from `GET /health/ready`.
 
 ## Important decisions
 
@@ -68,6 +71,7 @@ GitHub Actions is configured to run all required Python 3.12, Ruff, mypy, pytest
 - Lazy infrastructure access and replaceable readiness checks.
 - Alembic only; no `create_all`.
 - No provider or racing placeholders before canonical-domain design.
+- Separate CI jobs for code quality, migration validation, and full Compose startup.
 
 ## Assumptions
 
@@ -80,7 +84,7 @@ GitHub Actions is configured to run all required Python 3.12, Ruff, mypy, pytest
 - No real domain schema exists yet.
 - No production observability or deployment target exists.
 - Basic regex redaction is defensive, not a substitute for never logging secrets.
-- Dependency lock-file strategy can be selected once local developer tooling is confirmed.
+- A dependency lock-file strategy remains to be selected once local developer tooling is confirmed.
 
 ## External dependencies
 
