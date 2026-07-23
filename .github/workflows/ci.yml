@@ -11,6 +11,32 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    env:
+      EV_ENVIRONMENT: test
+      EV_LOG_LEVEL: WARNING
+      EV_PRESENTATION_TIMEZONE: Australia/Sydney
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install project
+        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
+      - name: Ruff lint
+        run: ruff check .
+      - name: Show Ruff formatting diff
+        run: ruff format --diff .
+        continue-on-error: true
+      - name: Ruff format
+        run: ruff format --check .
+      - name: Mypy
+        run: mypy src tests
+      - name: Pytest
+        run: pytest
+
+  migration:
+    runs-on: ubuntu-latest
     services:
       postgres:
         image: postgres:17-alpine
@@ -37,14 +63,6 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install project
-        run: python -m pip install --upgrade pip && python -m pip install -e ".[dev]"
-      - name: Ruff lint
-        run: ruff check .
-      - name: Ruff format
-        run: ruff format --check .
-      - name: Mypy
-        run: mypy src tests
-      - name: Pytest
-        run: pytest
+        run: python -m pip install --upgrade pip && python -m pip install .
       - name: Migration smoke test
         run: alembic upgrade head
