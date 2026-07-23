@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ev-scanner"
+version = "0.1.0"
+description = "Locally hosted Australian thoroughbred racing EV and decision-support platform"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = {text = "Proprietary"}
+authors = [{name = "KhoiPharm"}]
+dependencies = [
+  "alembic>=1.18,<2.0",
+  "fastapi>=0.128,<0.129",
+  "psycopg[binary]>=3.3,<4.0",
+  "pydantic>=2.13,<3.0",
+  "pydantic-settings>=2.14,<3.0",
+  "sqlalchemy>=2.0.50,<3.0",
+  "uvicorn[standard]>=0.48,<0.49",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28,<0.29",
+  "mypy>=1.18,<2.0",
+  "pytest>=9.0,<10.0",
+  "ruff>=0.12,<1.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["B011"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+warn_unused_configs = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = ["alembic.*"]
+ignore_missing_imports = true
